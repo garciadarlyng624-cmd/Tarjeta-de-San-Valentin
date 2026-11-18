@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Ti ❤️ - Sorpresa Interactiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes elegantes de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        .font-serif-elegant {
+            font-family: 'Lora', Georgia, serif;
+        }
+        .font-cursive-love {
+            font-family: 'Dancing Script', cursive;
+        }
+        .font-sans-label {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Fondo romántico degradado rosa empolvado */
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 42%, #e8b4c3 0%, #c98a9b 50%, #9e5f71 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Viñeta ambiental */
+        .vignette {
+            background: radial-gradient(circle, transparent 52%, rgba(82, 30, 46, 0.38) 100%);
+            pointer-events: none;
+        }
+
+        /* Partículas bokeh flotantes */
+        @keyframes floatParticle {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.35;
+            }
+            50% {
+                transform: translateY(-22px) translateX(8px) scale(1.15);
+                opacity: 0.78;
+            }
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,215,228,0) 70%);
+            pointer-events: none;
+            animation: floatParticle var(--dur, 5s) ease-in-out infinite;
+            animation-delay: var(--delay, 0s);
+        }
+
+        /* Flotación suave de la caja de regalo */
+        @keyframes gentleFloat {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                transform: translateY(-6px) scale(1.018);
+            }
+        }
+
+        .gift-hover-anim {
+            animation: gentleFloat 3.2s ease-in-out infinite;
+            cursor: pointer;
+            transition: filter 0.3s ease;
+        }
+        .gift-hover-anim:hover {
+            filter: drop-shadow(0 18px 25px rgba(125, 20, 45, 0.35));
+        }
+
+        /* Sacudida al abrir */
+        @keyframes boxShake {
+            0% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.06) rotate(-4deg); }
+            40% { transform: scale(1.08) rotate(4deg); }
+            60% { transform: scale(1.1) rotate(-3deg); }
+            80% { transform: scale(1.12) rotate(2deg); opacity: 0.6; }
+            100% { transform: scale(0.2); opacity: 0; }
+        }
+
+        .shake-open {
+            animation: boxShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+        }
+
+        /* Aparición del osito de peluche */
+        @keyframes bearPopIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.35) translateY(30px);
+            }
+            65% {
+                opacity: 1;
+                transform: scale(1.05) translateY(-6px);
+            }
+            82% {
+                transform: scale(0.98) translateY(2px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .bear-appear {
+            animation: bearPopIn 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Pulso en la etiqueta "Te amo" del osito */
+        @keyframes cardTagPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        .tag-pulse {
+            transform-origin: center;
+            transform-box: fill-box;
+            animation: cardTagPulse 2.2s ease-in-out infinite;
+        }
+
+        /* --- MODAL Y TARJETA DE LA CARTA (ESTRUCTURA FLEX CORREGIDA) --- */
+        .letter-backdrop {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 18px 22px;
+            background: rgba(40, 15, 22, 0.58);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .letter-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .letter-paper {
+            background: linear-gradient(170deg, #fdf6ea 0%, #fbf0de 60%, #f7e6ce 100%);
+            width: 100%;
+            max-width: 520px;
+            max-height: 82vh;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.38), inset 0 0 30px rgba(212, 180, 140, 0.25);
+            border: 1px solid #ead5b9;
+            position: relative;
+            padding: 38px 26px 24px;
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+        }
+
+        .letter-backdrop.active .letter-paper {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* Medallón superior circular con corazón */
+        .top-heart-badge {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #fffdf9 0%, #f5e5cf 100%);
+            border: 1px solid #e6cfa9;
+            position: absolute;
+            top: -27px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+            z-index: 2;
+        }
+
+        /* Encabezado fijo de la carta */
+        .letter-header {
+            flex-shrink: 0;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        /* Cuerpo desplazable de la carta con scrollbar visible y estilizado */
+        .letter-scroll-body {
+            flex: 1 1 auto;
+            min-height: 180px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 12px;
+            margin-bottom: 18px;
+            text-align: left;
+            color: #4a2c31;
+            font-size: 15.5px;
+            line-height: 1.72;
+            user-select: text;
+            /* Soporte Firefox */
+            scrollbar-width: thin;
+            scrollbar-color: #a83244 #f2e4cf;
+        }
+
+        /* Soporte Chrome, Edge y Safari para la barra de desplazamiento */
+        .letter-scroll-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .letter-scroll-body::-webkit-scrollbar-track {
+            background: #f2e4cf;
+            border-radius: 10px;
+        }
+        .letter-scroll-body::-webkit-scrollbar-thumb {
+            background: #a83244;
+            border-radius: 10px;
+            border: 1px solid #f2e4cf;
+        }
+        .letter-scroll-body::-webkit-scrollbar-thumb:hover {
+            background: #8b1a2b;
+        }
+
+        /* Pie fijo de la carta */
+        .letter-footer {
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        /* Botón rojo carmesí ancho completo */
+        .btn-crimson-pill {
+            background: linear-gradient(180deg, #9e2134 0%, #8b1a2b 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 999px;
+            padding: 13px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(139, 26, 43, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+        .btn-crimson-pill:hover {
+            background: linear-gradient(180deg, #b0263b 0%, #961c2f 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(139, 26, 43, 0.45);
+        }
+        .btn-crimson-pill:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body class="relative flex flex-col items-center justify-center w-full h-screen">
+
+    <!-- Viñeta ambiental -->
+    <div class="fixed inset-0 vignette z-0"></div>
+
+    <!-- Partículas flotantes de fondo -->
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Canvas para explosión de confeti de corazones y pétalos -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-30"></canvas>
+
+    <!-- Botón superior izquierdo: "Volver a envolver" -->
+    <button id="reset-btn" title="Volver a envolver el regalo" class="fixed top-4 left-4 z-20 opacity-0 pointer-events-none transition-all duration-300 bg-white/65 hover:bg-white/95 backdrop-blur-sm text-[#7a1c2e] text-xs font-sans-label font-semibold px-3.5 py-2 rounded-full shadow-sm flex items-center gap-1.5 border border-white/80 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <span>Volver a envolver</span>
+    </button>
+
+    <!-- ESCENARIO CENTRAL -->
+    <main class="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-4">
+        
+        <div class="relative w-full max-w-[460px] aspect-[1.15/1] flex items-center justify-center">
+            
+            <!-- 1. CAJA DE REGALO INTERACTIVA -->
+            <div id="gift-stage" class="w-[68%] max-w-[300px] gift-hover-anim z-10 -ml-8 sm:-ml-10" role="button" tabindex="0" aria-label="Abrir caja de regalo">
+                <svg viewBox="0 0 360 360" class="w-full h-auto overflow-visible">
+                    <defs>
+                        <radialGradient id="floorShadow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#5c1a2e" stop-opacity="0.42"/>
+                            <stop offset="65%" stop-color="#5c1a2e" stop-opacity="0.16"/>
+                            <stop offset="100%" stop-color="#5c1a2e" stop-opacity="0"/>
+                        </radialGradient>
+
+                        <linearGradient id="boxLeftFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="65%" stop-color="#f7f2f4"/>
+                            <stop offset="100%" stop-color="#e6dce0"/>
+                        </linearGradient>
+
+                        <linearGradient id="boxRightFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#f0e7ea"/>
+                            <stop offset="55%" stop-color="#dfd2d7"/>
+                            <stop offset="100%" stop-color="#cbbac0"/>
+                        </linearGradient>
+
+                        <linearGradient id="lidDropShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#4a1525" stop-opacity="0.28"/>
+                            <stop offset="100%" stop-color="#4a1525" stop-opacity="0"/>
+                        </linearGradient>
+
+                        <linearGradient id="lidTopGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+                            <stop offset="0%" stop-color="#e83546"/>
+                            <stop offset="50%" stop-color="#c91d2e"/>
+                            <stop offset="100%" stop-color="#9e111f"/>
+                        </linearGradient>
+
+                        <linearGradient id="lidLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#d62436"/>
+                            <stop offset="100%" stop-color="#a81322"/>
+                        </linearGradient>
+
+                        <linearGradient id="lidRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#b51626"/>
+                            <stop offset="100%" stop-color="#800b17"/>
+                        </linearGradient>
+
+                        <linearGradient id="ribbonMain" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff5263"/>
+                            <stop offset="45%" stop-color="#d91c2e"/>
+                            <stop offset="100%" stop-color="#8f0d19"/>
+                        </linearGradient>
+
+                        <linearGradient id="ribbonHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#ff8591"/>
+                            <stop offset="50%" stop-color="#e02234"/>
+                            <stop offset="100%" stop-color="#9c0e1c"/>
+                        </linearGradient>
+
+                        <linearGradient id="heartPrintGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#e62e40"/>
+                            <stop offset="100%" stop-color="#b01323"/>
+                        </linearGradient>
+
+                        <path id="miniHeart" d="M 0,-6 C -3,-10 -10,-9 -10,-3 C -10,3 0,9 0,11 C 0,9 10,3 10,-3 C 10,-9 3,-10 0,-6 Z"/>
+                    </defs>
+
+                    <ellipse cx="185" cy="316" rx="145" ry="26" fill="url(#floorShadow)"/>
+
+                    <!-- Cuerpo de la caja blanca -->
+                    <polygon points="68,165 182,216 182,322 68,268" fill="url(#boxLeftFace)"/>
+                    <polygon points="182,216 296,165 296,268 182,322" fill="url(#boxRightFace)"/>
+
+                    <!-- Corazones estampados -->
+                    <g fill="url(#heartPrintGrad)" opacity="0.92">
+                        <use href="#miniHeart" transform="translate(92, 204) skewY(23) scale(0.95)"/>
+                        <use href="#miniHeart" transform="translate(132, 222) skewY(23) scale(0.85)"/>
+                        <use href="#miniHeart" transform="translate(164, 238) skewY(23) scale(0.9)"/>
+                        <use href="#miniHeart" transform="translate(86, 244) skewY(23) scale(0.8)"/>
+                        <use href="#miniHeart" transform="translate(118, 258) skewY(23) scale(1.05)"/>
+                        <use href="#miniHeart" transform="translate(158, 282) skewY(23) scale(0.95)"/>
+                        <use href="#miniHeart" transform="translate(102, 276) skewY(23) scale(0.75)"/>
+                    </g>
+
+                    <g fill="url(#heartPrintGrad)" opacity="0.86">
+                        <use href="#miniHeart" transform="translate(206, 235) skewY(-23) scale(0.9)"/>
+                        <use href="#miniHeart" transform="translate(244, 218) skewY(-23) scale(1.0)"/>
+                        <use href="#miniHeart" transform="translate(276, 202) skewY(-23) scale(0.8)"/>
+                        <use href="#miniHeart" transform="translate(202, 282) skewY(-23) scale(0.95)"/>
+                        <use href="#miniHeart" transform="translate(236, 264) skewY(-23) scale(0.85)"/>
+                        <use href="#miniHeart" transform="translate(272, 246) skewY(-23) scale(0.95)"/>
+                    </g>
+
+                    <!-- Sombra debajo de la tapa -->
+                    <polygon points="68,165 182,216 182,232 68,180" fill="url(#lidDropShadow)"/>
+                    <polygon points="182,216 296,165 296,180 182,232" fill="url(#lidDropShadow)"/>
+
+                    <!-- Tapa roja -->
+                    <polygon points="182,92 308,146 182,202 56,146" fill="url(#lidTopGrad)"/>
+                    <polygon points="56,146 182,202 182,223 56,167" fill="url(#lidLeftGrad)"/>
+                    <polygon points="182,202 308,146 308,167 182,223" fill="url(#lidRightGrad)"/>
+                    <polyline points="57,146 182,202 307,146" fill="none" stroke="#ff7a87" stroke-width="1.5" opacity="0.7"/>
+
+                    <!-- Cintas cruzadas -->
+                    <polygon points="107,123 131,112 257,168 233,179" fill="url(#ribbonHighlight)"/>
+                    <polygon points="233,179 257,168 257,189 233,200" fill="#8f0d19"/>
+
+                    <polygon points="233,112 257,123 131,179 107,168" fill="url(#ribbonHighlight)"/>
+                    <polygon points="107,168 131,179 131,200 107,189" fill="#a81120"/>
+
+                    <!-- Moño 3D -->
+                    <g transform="translate(182, 134)">
+                        <ellipse cx="4" cy="14" rx="58" ry="16" fill="#5e0710" opacity="0.35"/>
+                        <path d="M -8,4 C -28,18 -56,34 -74,48 L -56,52 L -50,62 C -32,44 -14,24 -2,10 Z" fill="url(#ribbonMain)"/>
+                        <path d="M 8,4 C 28,18 56,34 74,48 L 56,52 L 50,62 C 32,44 14,24 2,10 Z" fill="url(#ribbonMain)"/>
+                        <path d="M -6,-2 C -32,-38 -74,-34 -68,-8 C -64,8 -28,8 -6,2 Z" fill="#9c0e1c"/>
+                        <path d="M 6,-2 C 32,-38 74,-34 68,-8 C 64,8 28,8 6,2 Z" fill="#9c0e1c"/>
+                        <path d="M -6,0 C -26,-32 -78,-22 -72,4 C -66,24 -24,14 -6,4 Z" fill="url(#ribbonHighlight)"/>
+                        <path d="M -14,-2 C -32,-20 -62,-14 -58,2 C -54,12 -26,8 -14,2 Z" fill="#7a0914" opacity="0.45"/>
+                        <path d="M 6,0 C 26,-32 78,-22 72,4 C 66,24 24,14 6,4 Z" fill="url(#ribbonHighlight)"/>
+                        <path d="M 14,-2 C 32,-20 62,-14 58,2 C 54,12 26,8 14,2 Z" fill="#7a0914" opacity="0.45"/>
+                        <rect x="-13" y="-9" width="26" height="20" rx="8" fill="url(#ribbonHighlight)" stroke="#8f0d19" stroke-width="1"/>
+                        <ellipse cx="0" cy="-3" rx="8" ry="3.5" fill="#ff9ca6" opacity="0.55"/>
+                    </g>
+                </svg>
+
+                <p class="text-center text-[#6e1a2c] font-sans-label text-xs sm:text-sm font-semibold tracking-wide bg-white/75 backdrop-blur-sm py-1.5 px-4 rounded-full shadow-sm mx-auto w-max -mt-2 border border-white/85">
+                    Toca el regalo para abrirlo ✨
+                </p>
+            </div>
+
+            <!-- 2. OSITO DE PELUCHE CON ETIQUETA "Te amo ❤️" -->
+            <div id="bear-stage" class="hidden w-[72%] max-w-[320px] z-10 -ml-8 sm:-ml-10 cursor-pointer" role="button" tabindex="0" aria-label="Abrir carta de amor">
+                <svg viewBox="0 0 360 360" class="w-full h-auto overflow-visible">
+                    <defs>
+                        <radialGradient id="furHead" cx="42%" cy="35%" r="60%">
+                            <stop offset="0%" stop-color="#fff9f0"/>
+                            <stop offset="55%" stop-color="#edd9be"/>
+                            <stop offset="88%" stop-color="#d4b895"/>
+                            <stop offset="100%" stop-color="#b89772"/>
+                        </radialGradient>
+
+                        <radialGradient id="furBody" cx="45%" cy="35%" r="62%">
+                            <stop offset="0%" stop-color="#fcf4e8"/>
+                            <stop offset="60%" stop-color="#e6cfb1"/>
+                            <stop offset="100%" stop-color="#bfa07a"/>
+                        </radialGradient>
+
+                        <radialGradient id="furLimb" cx="40%" cy="30%" r="65%">
+                            <stop offset="0%" stop-color="#f7ead7"/>
+                            <stop offset="65%" stop-color="#dec3a1"/>
+                            <stop offset="100%" stop-color="#b5936b"/>
+                        </radialGradient>
+
+                        <radialGradient id="snoutGrad" cx="45%" cy="35%" r="60%">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="70%" stop-color="#f7ead9"/>
+                            <stop offset="100%" stop-color="#dec7ab"/>
+                        </radialGradient>
+
+                        <radialGradient id="innerEarGrad" cx="50%" cy="50%" r="55%">
+                            <stop offset="0%" stop-color="#d6b494"/>
+                            <stop offset="100%" stop-color="#b38c68"/>
+                        </radialGradient>
+
+                        <radialGradient id="noseGrad" cx="35%" cy="30%" r="65%">
+                            <stop offset="0%" stop-color="#6e4b3a"/>
+                            <stop offset="50%" stop-color="#3b2318"/>
+                            <stop offset="100%" stop-color="#1f110b"/>
+                        </radialGradient>
+
+                        <filter id="plushSoftShadow" x="-15%" y="-15%" width="130%" height="130%">
+                            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#5c1f31" flood-opacity="0.22"/>
+                        </filter>
+                    </defs>
+
+                    <ellipse cx="180" cy="318" rx="125" ry="22" fill="url(#floorShadow)"/>
+
+                    <g filter="url(#plushSoftShadow)">
+                        <!-- Orejas -->
+                        <circle cx="114" cy="84" r="32" fill="url(#furLimb)"/>
+                        <circle cx="116" cy="86" r="18" fill="url(#innerEarGrad)"/>
+                        <circle cx="246" cy="84" r="32" fill="url(#furLimb)"/>
+                        <circle cx="244" cy="86" r="18" fill="url(#innerEarGrad)"/>
+
+                        <!-- Cuerpo -->
+                        <ellipse cx="180" cy="238" rx="74" ry="72" fill="url(#furBody)"/>
+                        <ellipse cx="180" cy="242" rx="46" ry="48" fill="#f7ebdc" opacity="0.75"/>
+
+                        <!-- Brazos -->
+                        <path d="M 118,195 C 86,204 78,242 98,258 C 114,270 134,252 136,228 Z" fill="url(#furLimb)"/>
+                        <path d="M 242,195 C 274,204 282,242 262,258 C 246,270 226,252 224,228 Z" fill="url(#furLimb)"/>
+
+                        <!-- Patas inferiores -->
+                        <g transform="translate(116, 286) rotate(-14)">
+                            <ellipse cx="0" cy="0" rx="34" ry="40" fill="url(#furLimb)"/>
+                            <ellipse cx="0" cy="3" rx="22" ry="27" fill="url(#innerEarGrad)" opacity="0.75"/>
+                        </g>
+                        <g transform="translate(244, 286) rotate(14)">
+                            <ellipse cx="0" cy="0" rx="34" ry="40" fill="url(#furLimb)"/>
+                            <ellipse cx="0" cy="3" rx="22" ry="27" fill="url(#innerEarGrad)" opacity="0.75"/>
+                        </g>
+
+                        <!-- Cabeza -->
+                        <ellipse cx="180" cy="134" rx="78" ry="68" fill="url(#furHead)"/>
+
+                        <!-- Mejillas -->
+                        <ellipse cx="132" cy="148" rx="14" ry="8" fill="#f294a5" opacity="0.45"/>
+                        <ellipse cx="228" cy="148" rx="14" ry="8" fill="#f294a5" opacity="0.45"/>
+
+                        <!-- Ojos -->
+                        <g>
+                            <circle cx="147" cy="124" r="9.5" fill="#24140e"/>
+                            <circle cx="144" cy="120.5" r="3.2" fill="#ffffff"/>
+                            <circle cx="150" cy="126.5" r="1.4" fill="#ffffff" opacity="0.8"/>
+
+                            <circle cx="213" cy="124" r="9.5" fill="#24140e"/>
+                            <circle cx="210" cy="120.5" r="3.2" fill="#ffffff"/>
+                            <circle cx="216" cy="126.5" r="1.4" fill="#ffffff" opacity="0.8"/>
+                        </g>
+
+                        <!-- Hocico -->
+                        <ellipse cx="180" cy="152" rx="31" ry="24" fill="url(#snoutGrad)"/>
+                        <path d="M 170,141 C 170,136 190,136 190,141 C 190,147 183,153 180,153 C 177,153 170,147 170,141 Z" fill="url(#noseGrad)"/>
+                        <ellipse cx="177" cy="140" rx="4" ry="1.8" fill="#ffffff" opacity="0.5"/>
+                        <path d="M 180,153 L 180,161 M 169,160 Q 174.5,166 180,161 Q 185.5,166 191,160" fill="none" stroke="#4a2e20" stroke-width="2.4" stroke-linecap="round"/>
+
+                        <!-- Moño rojo en el cuello -->
+                        <g transform="translate(180, 196)">
+                            <path d="M -6,4 L -22,32 L -11,30 L -3,12 Z" fill="#b51626"/>
+                            <path d="M 6,4 L 22,32 L 11,30 L 3,12 Z" fill="#b51626"/>
+                            <path d="M -5,0 C -24,-18 -46,-10 -42,6 C -38,20 -16,12 -5,4 Z" fill="url(#ribbonHighlight)"/>
+                            <path d="M 5,0 C 24,-18 46,-10 42,6 C 38,20 16,12 5,4 Z" fill="url(#ribbonHighlight)"/>
+                            <rect x="-9" y="-7" width="18" height="15" rx="6" fill="#d91c2e" stroke="#8f0d19" stroke-width="1"/>
+                        </g>
+
+                        <!-- Tarjetita crema "Te amo ❤" -->
+                        <g id="love-note-trigger" class="tag-pulse">
+                            <rect x="133" y="274" width="94" height="44" rx="5" fill="#4a2816" opacity="0.22"/>
+                            <rect x="132" y="271" width="96" height="44" rx="5" fill="#fdf5e8" stroke="#d8be9e" stroke-width="1.5"/>
+                            <rect x="136" y="275" width="88" height="36" rx="3" fill="none" stroke="#e5ceb0" stroke-width="0.9"/>
+                            <text x="173" y="299" text-anchor="middle" fill="#6b3426" font-family="'Dancing Script', cursive" font-weight="700" font-size="22">Te amo</text>
+                            <path d="M 207,289 C 205,286 200,287 200,291 C 200,295 207,299 207,300 C 207,299 214,295 214,291 C 214,287 209,286 207,289 Z" fill="#d91c2e"/>
+                        </g>
+                    </g>
+                </svg>
+
+                <p class="text-center text-[#6e1a2c] font-sans-label text-xs sm:text-sm font-semibold tracking-wide bg-white/75 backdrop-blur-sm py-1.5 px-4 rounded-full shadow-sm mx-auto w-max -mt-2 border border-white/85">
+                    Toca la tarjeta «Te amo ❤️» 💌
+                </p>
+            </div>
+
+            <!-- 3. ROSA ROJA APOYADA A LA DERECHA -->
+            <div class="absolute right-1 sm:right-4 bottom-8 sm:bottom-10 w-[38%] max-w-[165px] pointer-events-none z-20">
+                <svg viewBox="0 0 220 150" class="w-full h-auto overflow-visible">
+                    <defs>
+                        <radialGradient id="roseShadowGrad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#5e1b2e" stop-opacity="0.38"/>
+                            <stop offset="100%" stop-color="#5e1b2e" stop-opacity="0"/>
+                        </radialGradient>
+
+                        <linearGradient id="stemGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#2d5a27"/>
+                            <stop offset="50%" stop-color="#4e8c3b"/>
+                            <stop offset="100%" stop-color="#23471e"/>
+                        </linearGradient>
+
+                        <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#5ea343"/>
+                            <stop offset="55%" stop-color="#366e26"/>
+                            <stop offset="100%" stop-color="#1e4214"/>
+                        </linearGradient>
+
+                        <radialGradient id="rosePetalOuter" cx="35%" cy="30%" r="70%">
+                            <stop offset="0%" stop-color="#f2293d"/>
+                            <stop offset="55%" stop-color="#b81122"/>
+                            <stop offset="100%" stop-color="#6b0510"/>
+                        </radialGradient>
+
+                        <radialGradient id="rosePetalInner" cx="40%" cy="35%" r="65%">
+                            <stop offset="0%" stop-color="#ff4d5e"/>
+                            <stop offset="60%" stop-color="#cc1426"/>
+                            <stop offset="100%" stop-color="#7d0713"/>
+                        </radialGradient>
+                    </defs>
+
+                    <ellipse cx="112" cy="124" rx="92" ry="11" fill="url(#roseShadowGrad)"/>
+                    <path d="M 18,116 Q 95,104 168,78" fill="none" stroke="url(#stemGrad)" stroke-width="5.5" stroke-linecap="round"/>
+
+                    <polygon points="56,110 60,103 63,109" fill="#366e26"/>
+                    <polygon points="94,104 98,111 101,103" fill="#2d5a27"/>
+
+                    <g transform="translate(68, 108) rotate(18)">
+                        <path d="M 0,0 C 12,-14 34,-12 44,0 C 34,12 12,14 0,0 Z" fill="url(#leafGrad)"/>
+                        <path d="M 2,0 L 38,0" stroke="#7bc45e" stroke-width="1" opacity="0.7"/>
+                    </g>
+
+                    <g transform="translate(86, 102) rotate(-32)">
+                        <path d="M 0,0 C 14,-15 38,-13 48,0 C 38,13 14,15 0,0 Z" fill="url(#leafGrad)"/>
+                        <path d="M 2,0 L 42,0" stroke="#7bc45e" stroke-width="1" opacity="0.7"/>
+                    </g>
+
+                    <g transform="translate(124, 92) rotate(24)">
+                        <path d="M 0,0 C 10,-12 30,-10 38,0 C 30,10 10,12 0,0 Z" fill="url(#leafGrad)"/>
+                        <path d="M 2,0 L 33,0" stroke="#7bc45e" stroke-width="0.9" opacity="0.7"/>
+                    </g>
+
+                    <path d="M 152,82 L 136,72 L 156,75 Z" fill="#2f6321"/>
+                    <path d="M 155,86 L 142,98 L 161,88 Z" fill="#2f6321"/>
+
+                    <g transform="translate(174, 72) rotate(-22)">
+                        <path d="M -22,-6 C -26,-26 8,-32 22,-16 C 32,-4 26,22 6,24 C -14,26 -20,10 -22,-6 Z" fill="url(#rosePetalOuter)"/>
+                        <path d="M -16,14 C -4,28 24,24 28,6 C 30,-8 14,-16 2,-10 Z" fill="#990b19"/>
+                        <path d="M -14,-10 C -8,-24 18,-22 22,-6 C 24,8 8,18 -6,14 C -16,10 -18,-2 -14,-10 Z" fill="url(#rosePetalInner)"/>
+                        <path d="M -6,-6 C 2,-14 14,-10 14,0 C 14,8 2,12 -4,6 C -8,2 -4,-4 2,-4 C 6,-4 8,0 4,3" fill="none" stroke="#59030b" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M -12,-14 Q 4,-22 16,-12" fill="none" stroke="#ff808d" stroke-width="1.5" stroke-linecap="round" opacity="0.65"/>
+                    </g>
+                </svg>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 4. MODAL DE LA CARTA DE AMOR (CON SCROLLBAR INTERNO Y TAMAÑO AMPLIO) -->
+    <div id="letter-modal" class="letter-backdrop" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+        
+        <article class="letter-paper">
+            
+            <!-- Medallón superior circular con corazón -->
+            <div class="top-heart-badge">
+                <span class="text-2xl leading-none" aria-hidden="true">❤️</span>
+            </div>
+
+            <!-- Botón '×' superior derecho -->
+            <button id="close-x-btn" aria-label="Cerrar carta" class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-[#efe0ca] hover:bg-[#e4cfb2] text-[#7a5448] flex items-center justify-center transition-colors cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+
+            <!-- Encabezado fijo -->
+            <header class="letter-header">
+                <p class="font-sans-label text-[10.5px] sm:text-[11px] font-semibold tracking-[0.18em] text-[#9b7468] uppercase mb-1">
+                    PARA TI, CON TODO MI AMOR
+                </p>
+                <h1 id="letter-title" class="font-serif-elegant text-2xl sm:text-[29px] font-bold text-[#4a1c24] tracking-tight">
+                    Te Amo muchísimo
+                </h1>
+                <!-- Línea divisoria con corazoncito -->
+                <div class="flex items-center justify-center gap-2 mt-2.5">
+                    <span class="w-12 h-[1px] bg-gradient-to-r from-transparent to-[#d4b696]"></span>
+                    <span class="text-[11px] text-[#b8374b]">♥</span>
+                    <span class="w-12 h-[1px] bg-gradient-to-l from-transparent to-[#d4b696]"></span>
+                </div>
+            </header>
+
+            <!-- Cuerpo desplazable con toda la carta -->
+            <div class="letter-scroll-body font-serif-elegant space-y-4">
+                <p>
+                    Cada momento a tu lado es el regalo más bonito que la vida me ha dado. A veces me pongo a pensar en lo afortunada que soy por haberte encontrado, por coincidir contigo entre tantas personas y por tener la oportunidad de compartir mi vida con alguien tan especial como tú. Quizás no te lo digo todos los días, pero quiero que sepas que tu presencia ha cambiado muchas cosas en mí. Desde que llegaste, mis días tienen un motivo más para sonreír, mis momentos felices son todavía más bonitos y hasta los días difíciles se sienten un poquito más fáciles cuando sé que te tengo a mi lado.
+                </p>
+                <p>
+                    Quiero darte esta pequeña sorpresa porque siento que un simple "te amo" no siempre es suficiente para expresar todo lo que llevo dentro. Quisiera encontrar las palabras perfectas para explicarte lo mucho que significas para mí, pero hay sentimientos tan grandes que ni todas las palabras del mundo podrían describirlos.
+                </p>
+                <p>
+                    Gracias por cada sonrisa que me has regalado, por cada abrazo que me ha hecho sentir que estoy en el lugar correcto, por cada conversación, cada momento juntos y cada pequeño detalle que quizás para ti parece insignificante, pero que para mí se convierte en un recuerdo que guardo con muchísimo cariño. No sabes cuántas veces has conseguido hacerme feliz sin siquiera darte cuenta.
+                </p>
+                <p>
+                    Quiero que sepas que no necesito que seas perfecto, porque no es eso lo que amo de ti. Amo quién eres, con tus virtudes, tus defectos, tus días buenos y tus días no tan buenos. Amo poder conocerte cada día un poquito más y descubrir nuevas razones para seguir eligiéndote. No quiero solamente estar contigo cuando todo sea bonito; también quiero acompañarte cuando las cosas se compliquen, escucharte cuando necesites hablar, apoyarte cuando sientas que no puedes más y recordarte lo increíble que eres cuando tú mismo lo olvides.
+                </p>
+                <p>
+                    Si algún día dudas de lo mucho que vales, quiero que recuerdes que existe alguien que ve en ti a una persona maravillosa. Alguien que sonríe al recibir un mensaje tuyo, que guarda con cariño los recuerdos que construyen juntos y que encuentra felicidad en las cosas más sencillas cuando está contigo.
+                </p>
+                <p>
+                    No sé exactamente qué nos tiene preparado el futuro, pero sí sé que me encantaría seguir escribiendo nuestra historia. Quiero más fotografías, más abrazos, más risas, más aventuras, más fechas especiales y también más días normales que se vuelvan extraordinarios simplemente porque estamos juntos. Quiero seguir creciendo contigo, aprender de nuestros errores, superar las dificultades y demostrarte con hechos que mi cariño por ti es sincero.
+                </p>
+                <p>
+                    Ojalá pudieras verte por un momento a través de mis ojos, porque entonces entenderías por qué eres tan especial para mí. Entenderías por qué me haces tan feliz, por qué me importan tanto tus sentimientos y por qué, entre tantas personas, mi corazón encontró en ti a alguien con quien quiere compartir tantos momentos.
+                </p>
+                <p>
+                    Esta sorpresa es pequeña comparada con todo lo que quisiera darte, pero cada palabra está escrita con muchísimo amor. Quiero que guardes este recuerdo y que, cuando vuelvas a leerlo, recuerdes que eres amado, valorado y que ocupas un lugar muy especial en mi corazón.
+                </p>
+                <p>
+                    Gracias por existir, por llegar a mi vida y por permitirme formar parte de la tuya. No sé cuántas páginas necesitaría para escribir todo lo que siento por ti, pero si tuviera que hacerlo, las llenaría todas sin cansarme.
+                </p>
+                <p>
+                    <strong class="font-bold text-[#3b151c]">Te amo por quien eres, por lo que somos cuando estamos juntos y por todos esos momentos que todavía nos esperan. Si pudiera volver al día en que te conocí, volvería a elegirte, porque entre todas las casualidades bonitas de mi vida, tú eres una de mis favoritas.</strong>
+                </p>
+                <p class="font-cursive-love text-2xl sm:text-[26px] font-bold text-[#7d1828] pt-1">
+                    Con todo mi amor, hoy y siempre. ❤️
+                </p>
+            </div>
+
+            <!-- Pie fijo con el botón rojo ancho completo -->
+            <footer class="letter-footer">
+                <button id="close-letter-btn" class="btn-crimson-pill font-sans-label">
+                    Cerrar carta
+                </button>
+            </footer>
+
+        </article>
+    </div>
+
+    <script>
+        // 1. Partículas flotantes de fondo
+        const particlesContainer = document.getElementById('particles-container');
+        const totalParticles = 28;
+
+        for (let i = 0; i < totalParticles; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'particle';
+            const size = Math.random() * 14 + 6;
+            dot.style.width = `${size}px`;
+            dot.style.height = `${size}px`;
+            dot.style.left = `${Math.random() * 100}%`;
+            dot.style.top = `${Math.random() * 100}%`;
+            dot.style.setProperty('--dur', `${Math.random() * 4 + 4}s`);
+            dot.style.setProperty('--delay', `${Math.random() * 4}s`);
+            particlesContainer.appendChild(dot);
+        }
+
+        // 2. Confeti de corazones y pétalos
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiPieces = [];
+        let animationFrameId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const confettiColors = [
+            '#e62e40', '#ff5c70', '#c9182b', '#ff8fa3',
+            '#d91c2e', '#ffb3c1', '#f3c669', '#ffccd5'
+        ];
+
+        function triggerConfettiExplosion() {
+            confettiPieces = [];
+            const originX = canvas.width / 2;
+            const originY = canvas.height / 2 - 20;
+
+            for (let i = 0; i < 95; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 11 + 4;
+                confettiPieces.push({
+                    x: originX + (Math.random() - 0.5) * 40,
+                    y: originY + (Math.random() - 0.5) * 40,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 5,
+                    size: Math.random() * 9 + 6,
+                    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 8,
+                    type: Math.random() > 0.35 ? 'heart' : 'petal',
+                    gravity: 0.16 + Math.random() * 0.08,
+                    drag: 0.97,
+                    wobble: Math.random() * 10,
+                    wobbleSpeed: 0.05 + Math.random() * 0.05,
+                    opacity: 1
+                });
+            }
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animateConfetti();
+        }
+
+        function drawHeartShape(ctx, size) {
+            ctx.beginPath();
+            const topCurveHeight = size * 0.3;
+            ctx.moveTo(0, topCurveHeight);
+            ctx.bezierCurveTo(0, 0, -size / 2, 0, -size / 2, topCurveHeight);
+            ctx.bezierCurveTo(-size / 2, (size + topCurveHeight) / 2, 0, (size + topCurveHeight) / 1.4, 0, size);
+            ctx.bezierCurveTo(0, (size + topCurveHeight) / 1.4, size / 2, (size + topCurveHeight) / 2, size / 2, topCurveHeight);
+            ctx.bezierCurveTo(size / 2, 0, 0, 0, 0, topCurveHeight);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPetalShape(ctx, size) {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, size * 0.65, size * 0.38, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            confettiPieces.forEach((p) => {
+                p.vx *= p.drag;
+                p.vy *= p.drag;
+                p.vy += p.gravity;
+                p.wobble += p.wobbleSpeed;
+
+                p.x += p.vx + Math.sin(p.wobble) * 1.1;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+
+                if (p.y > canvas.height * 0.85) {
+                    p.opacity -= 0.025;
+                }
+
+                if (p.opacity > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.opacity);
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+
+                    if (p.type === 'heart') {
+                        drawHeartShape(ctx, p.size);
+                    } else {
+                        drawPetalShape(ctx, p.size);
+                    }
+                    ctx.restore();
+                }
+            });
+
+            confettiPieces = confettiPieces.filter((p) => p.opacity > 0 && p.y < canvas.height + 40);
+
+            if (confettiPieces.length > 0) {
+                animationFrameId = requestAnimationFrame(animateConfetti);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // 3. Control de estados interactivos
+        const giftStage = document.getElementById('gift-stage');
+        const bearStage = document.getElementById('bear-stage');
+        const letterModal = document.getElementById('letter-modal');
+        const letterScrollBody = document.querySelector('.letter-scroll-body');
+        const closeLetterBtn = document.getElementById('close-letter-btn');
+        const closeXBtn = document.getElementById('close-x-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        let isOpening = false;
+
+        function openGiftBox() {
+            if (isOpening) return;
+            isOpening = true;
+
+            giftStage.classList.remove('gift-hover-anim');
+            giftStage.classList.add('shake-open');
+
+            setTimeout(() => {
+                triggerConfettiExplosion();
+                giftStage.classList.add('hidden');
+                giftStage.classList.remove('shake-open');
+
+                bearStage.classList.remove('hidden');
+                bearStage.classList.add('bear-appear');
+
+                resetBtn.classList.remove('opacity-0', 'pointer-events-none');
+                isOpening = false;
+            }, 460);
+        }
+
+        function openLoveLetter() {
+            if (letterScrollBody) {
+                letterScrollBody.scrollTop = 0;
+            }
+            letterModal.classList.add('active');
+        }
+
+        function closeLoveLetter() {
+            letterModal.classList.remove('active');
+        }
+
+        function resetToGiftBox() {
+            closeLoveLetter();
+            bearStage.classList.add('hidden');
+            bearStage.classList.remove('bear-appear');
+
+            giftStage.classList.remove('hidden');
+            giftStage.classList.add('gift-hover-anim');
+
+            resetBtn.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        giftStage.addEventListener('click', openGiftBox);
+        giftStage.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') openGiftBox();
+        });
+
+        bearStage.addEventListener('click', openLoveLetter);
+        bearStage.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') openLoveLetter();
+        });
+
+        closeLetterBtn.addEventListener('click', closeLoveLetter);
+        closeXBtn.addEventListener('click', closeLoveLetter);
+
+        letterModal.addEventListener('click', (e) => {
+            if (e.target === letterModal) {
+                closeLoveLetter();
+            }
+        });
+
+        resetBtn.addEventListener('click', resetToGiftBox);
+    </script>
+</body>
+</html>
